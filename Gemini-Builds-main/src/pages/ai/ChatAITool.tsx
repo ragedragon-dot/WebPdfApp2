@@ -260,18 +260,18 @@ export default function ChatAITool() {
   };
 
   return (
-    <div className="flex flex-row h-[100dvh] w-full antialiased overflow-hidden bg-white dark:bg-slate-900 relative">
+    <div className="flex flex-row h-full w-full antialiased overflow-hidden bg-white dark:bg-slate-900 relative">
       
       {/* Sidebar for Chat History */}
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-30 md:hidden transition-opacity"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
       
-      <div className={`fixed md:relative flex flex-col md:w-72 h-[100dvh] bg-slate-50 dark:bg-slate-900/80 border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-sm' : '-translate-x-full w-0 md:w-72'}`}>
+      <div className={`fixed md:relative flex flex-col md:w-72 h-full bg-slate-50 dark:bg-slate-900/80 border-r border-slate-200 dark:border-slate-800 z-40 transform transition-transform duration-300 md:translate-x-0 ${isSidebarOpen ? 'translate-x-0 w-[80vw] max-w-sm' : '-translate-x-full w-0 md:w-72'}`}>
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <h2 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-indigo-500" />
@@ -336,7 +336,7 @@ export default function ChatAITool() {
       </div>
       
       {/* Main Chat Area flex column */}
-      <div className="flex flex-col flex-1 h-[100dvh] overflow-hidden min-w-0 relative">
+      <div className="flex flex-col flex-1 h-full overflow-hidden min-w-0 relative">
       
       {/* Header bar */}
       <div className="h-14 border-b border-slate-200 dark:border-slate-800 flex flex-row items-center justify-between px-4 md:px-6 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm relative">
@@ -371,7 +371,7 @@ export default function ChatAITool() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-950 flex flex-col gap-6 relative">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-950 flex flex-col gap-6 relative">
         {/* Subtle background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[100px]" />
@@ -415,10 +415,10 @@ export default function ChatAITool() {
                                     <Sparkles className="w-5 h-5 text-white" />
                                 </div>
                             )}
-                            <div className={`flex flex-col gap-2 rounded-3xl px-6 py-4 shadow-sm relative z-0 ${
+                            <div className={`flex flex-col gap-2 rounded-3xl px-6 py-4 shadow-sm relative z-0 min-w-0 max-w-full ${
                                 msg.role === 'user' 
                                     ? 'bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-br-none border border-indigo-500 shadow-indigo-500/20 shadow-lg leading-relaxed' 
-                                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-bl-none shadow-sm'
+                                    : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 rounded-bl-none shadow-sm overflow-hidden'
                             }`}>
                                 {msg.fileName && !msg.previewUrl && (
                                     <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold ${msg.role === 'user' ? 'bg-black/20' : 'bg-slate-100 dark:bg-slate-800'}`}>
@@ -432,7 +432,7 @@ export default function ChatAITool() {
                                     </div>
                                 )}
                                 {msg.content && (
-                                    <div className={`text-[15px] ${msg.role === 'assistant' ? 'markdown-body text-slate-800 dark:text-slate-200' : ''}`}>
+                                    <div className={`text-[15px] min-w-0 max-w-full overflow-x-auto ${msg.role === 'assistant' ? 'markdown-body text-slate-800 dark:text-slate-200' : 'whitespace-pre-wrap break-words overflow-wrap-anywhere'}`}>
                                         {msg.role === 'assistant' && typeof msg.content === 'string' ? <MarkdownRenderer content={msg.content} /> : msg.content}
                                     </div>
                                 )}
@@ -522,21 +522,6 @@ export default function ChatAITool() {
               )}
             </AnimatePresence>
 
-            <div className="flex justify-start px-2 py-1">
-                <select
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-indigo-500/50"
-                >
-                    <option value="auto">Auto (Best Available)</option>
-                    <option value="openai/gpt-4o-mini">OpenAI (Text)</option>
-                    <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes (Text)</option>
-                    <option value="google/gemma-2-27b-it">Google Gemma (Image & Text)</option>
-                    <option value="nvidia/llama-3.1-nemotron-70b-instruct">Nvidia Nemotron (Image & Text)</option>
-                    <option value="openrouter/free">OpenRouter Free (Any)</option>
-                </select>
-            </div>
-            
             <form onSubmit={handleSendMessage} className="relative flex items-center bg-slate-100 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm focus-within:ring-[3px] focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all overflow-hidden pr-2 w-full">
                 <input 
                     type="file" 
@@ -548,7 +533,7 @@ export default function ChatAITool() {
                 <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-4 pr-3 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer group"
+                    className="p-4 pr-3 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer group shrink-0"
                     title="Attach document or image"
                 >
                     <Plus className="w-6 h-6 group-hover:scale-110 transition-transform" />
@@ -559,17 +544,38 @@ export default function ChatAITool() {
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Message AI Assistant..."
-                    className="flex-1 bg-transparent border-none py-5 px-2 outline-none text-slate-800 dark:text-slate-100 text-sm md:text-base font-medium placeholder-slate-400 dark:placeholder-slate-500"
+                    className="flex-1 min-w-0 bg-transparent border-none py-5 px-2 outline-none text-slate-800 dark:text-slate-100 text-sm md:text-base font-medium placeholder-slate-400 dark:placeholder-slate-500"
                     disabled={isTyping}
                 />
                 
-                <button
-                    type="submit"
-                    disabled={isTyping || (!inputMessage.trim() && !attachedFile)}
-                    className="p-3 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-full hover:from-indigo-700 hover:to-indigo-600 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 mx-1"
-                >
-                    <Send className="w-5 h-5 ml-0.5" />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <div 
+                        className={`transition-all duration-300 ease-in-out overflow-hidden flex items-center ${
+                            inputMessage.trim() ? 'w-0 opacity-0 pointer-events-none' : 'w-[140px] md:w-[180px] opacity-100'
+                        }`}
+                    >
+                        <select
+                            value={selectedModel}
+                            onChange={(e) => setSelectedModel(e.target.value)}
+                            className="w-full text-xs font-medium bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-2 outline-none focus:ring-2 focus:ring-indigo-500/50 truncate"
+                        >
+                            <option value="auto">Auto (Best Available)</option>
+                            <option value="openai/gpt-4o-mini">OpenAI (Text)</option>
+                            <option value="nousresearch/hermes-3-llama-3.1-405b:free">Hermes (Text)</option>
+                            <option value="google/gemma-2-27b-it">Google Gemma (Image & Text)</option>
+                            <option value="nvidia/llama-3.1-nemotron-70b-instruct">Nvidia Nemotron (Image & Text)</option>
+                            <option value="openrouter/free">OpenRouter (Any)</option>
+                        </select>
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={isTyping || (!inputMessage.trim() && !attachedFile)}
+                        className="p-3 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-full hover:from-indigo-700 hover:to-indigo-600 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed transition-all shadow-md active:scale-95 shrink-0"
+                    >
+                        <Send className="w-5 h-5 ml-0.5" />
+                    </button>
+                </div>
             </form>
             <div className="flex justify-center items-center gap-4 mt-1">
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Supports PDF, TXT, and Images (&lt;5MB)</p>
