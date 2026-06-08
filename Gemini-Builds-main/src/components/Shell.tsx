@@ -217,8 +217,8 @@ function SidebarContent({
           {/* Ad content will be injected here. Container remains collapsed when empty. */}
         </div>
 
-        {/* Mobile Theme selector settings */}
-        <div className="md:hidden py-4 space-y-3">
+        {/* Theme selector settings */}
+        <div className="py-4 space-y-3">
           <span className="px-3 text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest block">
             Appearance
           </span>
@@ -531,7 +531,7 @@ export default function Shell({ children, activeTool, onSelectTool }: ShellProps
           style={{ height: '100dvh' }}
           className={`shrink-0 border-r border-slate-200/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl fixed top-0 bottom-0 left-0 w-[280px] transform ${
             menuOpen ? 'translate-x-0 shadow-[0_0_80px_rgba(0,0,0,0.15)] dark:shadow-[0_0_80px_rgba(0,0,0,0.5)]' : '-translate-x-full'
-          } transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-50 flex flex-col justify-between h-screen h-[100dvh] overflow-y-hidden overscroll-contain`}
+          } transition-transform duration-500 cubic-bezier(0.16, 1, 0.3, 1) z-[60] flex flex-col justify-between h-screen overflow-y-hidden overscroll-contain`}
         >
           <SidebarContent 
             activeTool={activeTool} 
@@ -552,7 +552,7 @@ export default function Shell({ children, activeTool, onSelectTool }: ShellProps
           <div
             id="drawer-backdrop-shading"
             onClick={() => setMenuOpen(false)}
-            className="fixed inset-0 bg-slate-900/20 dark:bg-slate-950/60 backdrop-blur-sm z-40 transition-all duration-500 cursor-pointer animate-in fade-in"
+            className="fixed inset-0 bg-slate-900/20 dark:bg-slate-950/60 backdrop-blur-sm z-50 transition-all duration-500 cursor-pointer animate-in fade-in"
           />
         )}
 
