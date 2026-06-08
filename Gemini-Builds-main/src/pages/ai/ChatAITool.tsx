@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
   content: string | any[];
+  fileName?: string;
 }
 
 interface WebMessage {
@@ -25,7 +26,7 @@ export default function ChatAITool() {
   ]);
   
   const [inputMessage, setInputMessage] = useState('');
-  const [attachedFile, setAttachedFile] = useState<{ file: File; base64?: string; text?: string; type: 'image' | 'pdf' | 'text' } | null>(null);
+  const [attachedFile, setAttachedFile] = useState<{ file: File; base64?: string; text?: string; type: 'image' | 'pdf' | 'text' | 'media' | 'code' } | null>(null);
   
   const [isTyping, setIsTyping] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +70,7 @@ export default function ChatAITool() {
       const fileType = file.type;
       
       try {
+        const ext = file.name.split('.').pop()?.toLowerCase() || '';
         if (fileType === 'application/pdf') {
           const text = await extractTextFromPDF(file);
           setAttachedFile({ file, text, type: 'pdf' });
@@ -80,14 +82,25 @@ export default function ChatAITool() {
             }
           };
           reader.readAsDataURL(file);
-        } else if (fileType === 'text/plain' || fileType === 'text/csv' || file.name.endsWith('.txt')) {
-          const text = await file.text();
-          setAttachedFile({ file, text, type: 'text' });
+        } else if (fileType.startsWith('video/') || fileType.startsWith('audio/') || ['mp3', 'mp4', 'wav', 'webm', 'ogg'].includes(ext)) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target && typeof event.target.result === 'string') {
+              setAttachedFile({ file, base64: event.target.result, type: 'media' });
+            }
+          };
+          reader.readAsDataURL(file);
         } else {
-          setError("This file is not supported!");
+          try {
+            const text = await file.text();
+            const isCode = ['html', 'css', 'js', 'jsx', 'ts', 'tsx', 'json', 'py', 'java', 'c', 'cpp', 'rs', 'go'].includes(ext);
+            setAttachedFile({ file, text, type: isCode ? 'code' : 'text' });
+          } catch(e) {
+            setError("Could not read file as text.");
+          }
         }
       } catch (err) {
-        setError("This file is not supported!");
+        setError("Error processing this file.");
       }
     }
     // reset input
@@ -104,9 +117,11 @@ export default function ChatAITool() {
     const messageWords = inputMessage.trim() ? inputMessage.trim().split(/\s+/).length : 0;
     const fileWords = attachedFile?.text ? attachedFile.text.split(/\s+/).length : 0;
     const totalWords = messageWords + fileWords;
+    const imageCost = attachedFile?.type === 'image' ? 1 : 0;
     
-    // Deduct 1 credit for every 3000 words (minimum 1)
-    const cost = Math.max(1, Math.ceil(totalWords / 3000));
+    // Deduct 1 credit for every 3000 words (minimum 1, unless it's just an image where image is 1)
+    const textCost = totalWords > 0 ? Math.ceil(totalWords / 3000) : 0;
+    const cost = Math.max(1, textCost + imageCost);
 
     // Check balance first
     const currentBalance = profile?.credits || 0;
@@ -149,13 +164,16 @@ export default function ChatAITool() {
     // For the last message, attach the file context if one was uploaded with this message
     if (attachedFile) {
         const lastMsg = finalApiMessages[finalApiMessages.length - 1];
-        if (attachedFile.type === 'image' && attachedFile.base64) {
+        if ((attachedFile.type === 'image' || attachedFile.type === 'media') && attachedFile.base64) {
             lastMsg.content = [
-                { type: "text", text: inputMessage || "Please analyze this image." },
+                { type: "text", text: inputMessage || `Please analyze this ${attachedFile.type}.` },
                 { type: "image_url", image_url: { url: attachedFile.base64 } }
             ];
-        } else if ((attachedFile.type === 'pdf' || attachedFile.type === 'text') && attachedFile.text) {
+            // Pass fileName for backend detection
+            lastMsg.fileName = attachedFile.file.name;
+        } else if ((attachedFile.type === 'pdf' || attachedFile.type === 'text' || attachedFile.type === 'code') && attachedFile.text) {
             lastMsg.content = `Document content attached (${attachedFile.file.name}):\n\n${attachedFile.text.substring(0, 30000)}\n\nUser Question: ${inputMessage || 'Analyze the document.'}`;
+            lastMsg.fileName = attachedFile.file.name;
         }
     }
     
@@ -202,7 +220,7 @@ export default function ChatAITool() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] w-full antialiased overflow-hidden bg-slate-50 dark:bg-slate-900 relative">
+    <div className="flex flex-col h-[100dvh] w-full antialiased overflow-hidden bg-slate-50 dark:bg-slate-900 relative">
       
       {/* Header bar */}
       <div className="h-14 border-b border-slate-200 dark:border-slate-800 flex flex-row items-center justify-between px-6 bg-white dark:bg-slate-900 shrink-0 z-10 shadow-sm relative">
@@ -231,7 +249,7 @@ export default function ChatAITool() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-950 flex flex-col gap-6 relative">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-slate-50/50 dark:bg-slate-950 flex flex-col gap-6 relative">
         {/* Subtle background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/5 dark:bg-indigo-500/10 blur-[100px]" />
@@ -349,7 +367,7 @@ export default function ChatAITool() {
       </div>
 
       {/* Inputs fixed at bottom */}
-      <div className="p-4 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-10 shrink-0">
+      <div className="p-4 md:p-6 pb-[max(env(safe-area-inset-bottom),1rem)] bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-10 shrink-0">
         <div className="max-w-3xl mx-auto relative flex flex-col gap-3">
             
             <AnimatePresence>
@@ -419,7 +437,7 @@ export default function ChatAITool() {
             <div className="flex justify-center items-center gap-4 mt-1">
                 <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">Supports PDF, TXT, CSV, and Images</p>
                 <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">1 Credit / 3000 words</p>
+                <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">1 Credit / 3000 words or 1 Image</p>
             </div>
         </div>
       </div>
