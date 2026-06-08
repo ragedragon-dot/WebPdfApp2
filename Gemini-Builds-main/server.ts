@@ -194,13 +194,47 @@ async function requestAIChat(messages: any[]) {
     });
   }
 
-  // Vision generally works better on some specific openrouter models or gemini models depending on what's configured,
-  // but OpenRouter /free auto router will try to route.
-  // We add 'google/gemini-1.5-flash' to models just in case vision is used because it supports multi-modal.
-  const CHAT_MODELS = [
-    "openai/gpt-4o-mini",
-    "nousresearch/hermes-3-llama-3.1-405b:free"
-  ];
+  const hasImage = messages.some(m => 
+    Array.isArray(m.content) && m.content.some((c: any) => c.type === 'image_url') && !m.fileName?.match(/\.(mp3|mp4|wav|webm|ogg|csv)$/i)
+  );
+
+  const lastMsg = messages[messages.length - 1];
+  let hasMedia = false;
+  let hasCode = false;
+  
+  if (lastMsg && lastMsg.fileName) {
+      const ext = lastMsg.fileName.split('.').pop()?.toLowerCase() || '';
+      if (['mp3', 'mp4', 'wav', 'webm', 'ogg', 'csv'].includes(ext)) {
+          hasMedia = true;
+      } else if (['html', 'css', 'js', 'jsx', 'ts', 'tsx', 'json', 'py', 'java', 'c', 'cpp', 'rs', 'go'].includes(ext)) {
+          hasCode = true;
+      }
+  }
+
+  let CHAT_MODELS;
+  if (hasMedia) {
+      CHAT_MODELS = [
+          "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+          "openrouter/free"
+      ];
+  } else if (hasCode) {
+      CHAT_MODELS = [
+          "moonshotai/kimi-k2.6:free",
+          "openrouter/free"
+      ];
+  } else if (hasImage) {
+      CHAT_MODELS = [
+          "google/gemma-2-27b-it",
+          "nvidia/llama-3.1-nemotron-70b-instruct",
+          "openrouter/free"
+      ];
+  } else {
+      CHAT_MODELS = [
+          "openai/gpt-4o-mini",
+          "nousresearch/hermes-3-llama-3.1-405b:free",
+          "openrouter/free"
+      ];
+  }
 
   for (const modelId of CHAT_MODELS) {
     try {
