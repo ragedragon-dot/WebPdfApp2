@@ -428,7 +428,7 @@ export default function Shell({ children, activeTool, onSelectTool }: ShellProps
           <div className="flex items-center gap-3 sm:gap-4">
             
             {/* User Auth Controller - Desktop only */}
-            <div className="hidden lg:block">
+            <div className="hidden sm:block">
               {loading ? (
                 <div className="text-xs text-slate-400">Loading...</div>
               ) : user ? (
@@ -460,8 +460,8 @@ export default function Shell({ children, activeTool, onSelectTool }: ShellProps
               )}
             </div>
 
-            {/* Theme Selector Tab Widget - Desktop only */}
-            <div className="hidden lg:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-inner backdrop-blur-sm">
+            {/* Theme Selector Tab Widget - Desktop/Tablet */}
+            <div className="hidden sm:flex items-center gap-1 bg-slate-100/80 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-inner backdrop-blur-sm">
               <button
                 onClick={() => setTheme('light')}
                 className={`p-1.5 rounded-lg transition-all focus:outline-none cursor-pointer ${
