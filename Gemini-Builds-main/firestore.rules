@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'dateJoined', 'credits']) &&
+             data.keys().size() == 3 &&
+             data.name is string && data.name.size() <= 100 &&
+             data.dateJoined is timestamp &&
+             data.credits is number && data.credits >= 0;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidId(userId) &&
+                       isValidUser(incoming()) && incoming().dateJoined == request.time;
+      allow update: if isSignedIn() && request.auth.uid == userId && isValidId(userId) &&
+                       isValidUser(incoming()) &&
+                       incoming().dateJoined == existing().dateJoined &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['name', 'credits']);
+    }
+  }
+}

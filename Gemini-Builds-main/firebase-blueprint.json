@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile data",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "dateJoined": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "credits": {
+          "type": "number"
+        }
+      },
+      "required": ["name", "dateJoined", "credits"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "User profile for the application"
+    }
+  }
+}

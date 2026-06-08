@@ -1,0 +1,6 @@
+{
+  "name": "PDF Editor & Reader",
+  "description": "A 100% client-side PDF processing suite for merging, splitting, signing, and reading PDFs seamlessly with zero server retention.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
