@@ -89,7 +89,7 @@ export default function ChatAITool() {
     const totalWords = messageWords + fileWords;
     
     // Deduct 1 credit for every 2000 words (minimum 1)
-    const cost = Math.max(1, Math.ceil(totalWords / 2000));
+    const cost = Math.max(1, Math.ceil(totalWords / 4000));
 
     // Check balance first
     const currentBalance = profile?.credits || 0;
